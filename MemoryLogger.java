@@ -1,3 +1,4 @@
+package project;
 /*package ca.pfv.spmf.tools;
 /*
  *  Copyright (c) 2008-2012 Philippe Fournier-Viger

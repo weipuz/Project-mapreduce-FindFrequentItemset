@@ -1,3 +1,4 @@
+package project;
 //package ca.pfv.spmf.test;
 
 import java.io.IOException;

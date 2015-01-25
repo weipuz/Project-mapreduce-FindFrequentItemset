@@ -1,3 +1,4 @@
+package project;
 //package ca.pfv.spmf.algorithms;
 
 import java.util.Arrays;

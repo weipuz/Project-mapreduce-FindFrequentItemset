@@ -1,3 +1,4 @@
+package project;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
@@ -14,7 +15,7 @@ import org.apache.hadoop.util.LineReader;
 
 
 public class MyNLinesRecordReader extends RecordReader<LongWritable, Text>{
-    private final int NLINESTOPROCESS = 1000;
+    private int NLINESTOPROCESS;
     private LineReader in;
     private LongWritable key;
     private Text value = new Text();
@@ -55,6 +56,8 @@ public class MyNLinesRecordReader extends RecordReader<LongWritable, Text>{
         FileSplit split = (FileSplit) genericSplit;
         final Path file = split.getPath();
         Configuration conf = context.getConfiguration();
+        this.NLINESTOPROCESS = conf.getInt("NofLines", 100);
+        
         this.maxLineLength = conf.getInt("mapred.linerecordreader.maxlength",Integer.MAX_VALUE);
         FileSystem fs = file.getFileSystem(conf);
         start = split.getStart();

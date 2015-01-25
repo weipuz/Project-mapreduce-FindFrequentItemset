@@ -1,3 +1,4 @@
+package project;
 //package ca.pfv.spmf.patterns.itemset_array_integers_with_count;
 
 //import ca.pfv.spmf.patterns.AbstractOrderedItemset;

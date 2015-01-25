@@ -1,3 +1,4 @@
+package project;
 //package ca.pfv.spmf.patterns;
 
 /* This file is copyright (c) 2008-2012 Philippe Fournier-Viger

@@ -1,3 +1,4 @@
+package project;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,10 +21,13 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapred.Task;
 import org.apache.hadoop.mapred.lib.NLineInputFormat;
+import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
+import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -35,6 +39,8 @@ import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.LineReader;
+
+
 
 
 
@@ -71,32 +77,13 @@ public class AprioriMR {
 		private BufferedReader fis;
 
 		//@Override
-		public void setup(Context context) throws IOException,
+	public void setup(Context context) throws IOException,
 		InterruptedException {
 			conf = context.getConfiguration();
-			caseSensitive = conf.getBoolean("wordcount.case.sensitive", true);
-			if (conf.getBoolean("wordcount.skip.patterns", true)) {
-				URI[] patternsURIs = Job.getInstance(conf).getCacheFiles();
-				for (URI patternsURI : patternsURIs) {
-					Path patternsPath = new Path(patternsURI.getPath());
-					String patternsFileName = patternsPath.getName().toString();
-					parseSkipFile(patternsFileName);
-				}
-			}
+			minSup = conf.getFloat("support",0.01f);
+			
 		}
 
-		private void parseSkipFile(String fileName) {
-			try {
-				fis = new BufferedReader(new FileReader(fileName));
-				String pattern = null;
-				while ((pattern = fis.readLine()) != null) {
-					patternsToSkip.add(pattern);
-				}
-			} catch (IOException ioe) {
-				System.err.println("Caught exception while parsing the cached file '"
-						+ StringUtils.stringifyException(ioe));
-			}
-		}
 
 		//@Override
 		public void map(Object key, Text value, Context context
@@ -105,7 +92,7 @@ public class AprioriMR {
 			String input = value.toString();
 			String output = null;
 			
-			minSup = 0.01;
+			//minSup = 0.01;
 			
 			AlgoApriori ap = new AlgoApriori();
 			
@@ -142,44 +129,199 @@ public class AprioriMR {
 			}
 		}
 
+		
+		
+		public static class TokenizerMapper2
+	    extends Mapper<Object, Text, Text, IntWritable>{
+
+	        private Text word = new Text();
+
+	        private Configuration conf;
+	        private BufferedReader fis;
+	        
+	        private Set<String> ItemSets = new HashSet<String>();
+
+	        private Map<String,Integer > itemsMap = new HashMap<String,Integer>();
+
+	        @Override
+	        public void setup(Context context) throws IOException,
+	        InterruptedException {
+	        	
+	            conf = context.getConfiguration();
+	            URI[] FrqSetsURI = Job.getInstance(conf).getCacheFiles();
+	            Path FrqSetsPath = new Path(FrqSetsURI[0].getPath());
+
+
+	           // String tempPath = conf.get("temppath");
+	            String FrqSetsFileName = FrqSetsPath.getName().toString();
+	           // String itemSetsPath = tempPath+"/"+"part-r-00000";
+
+	            FileReader fr = new FileReader(FrqSetsFileName);
+	            BufferedReader br = new BufferedReader(fr);
+
+	            String anItemSet;
+	            int count = 0;
+
+	            while ((anItemSet = br.readLine())!=null){
+	            	String[] IArr = anItemSet.split(" ");
+	            	String last= IArr[IArr.length-1];
+	            	String[] ItemSet = anItemSet.split(last);
+	                itemsMap.put(ItemSet[0], count);
+
+	            }
+
+	            br.close();
+	        }
+
+
+
+
+	        @Override
+	        public void map(Object key, Text value, Context context
+
+	                ) throws IOException, InterruptedException {
+
+	            String input = value.toString();
+	            String output = null;
+	            String [] data_in = input.split("\n");
+				String line=null;
+	            
+	         // for each line (transactions) until the end of the file
+				
+				Set<String> itemSet;
+				Set<String> transactionSet;
+	            for (Map.Entry<String, Integer> entry : itemsMap.entrySet()) { 
+					itemSet = new HashSet<String>(Arrays.asList(entry.getKey().split(" ")));
+					int count = 0;
+					itemsMap.put(entry.getKey(), count);
+					for (int j=0;j<data_in.length;j++) {           
+						line=data_in[j].trim();
+						transactionSet = new HashSet<String>(Arrays.asList(line.split(" ")));
+
+						if (transactionSet.containsAll(itemSet)){
+							count = itemsMap.get(entry.getKey());
+							itemsMap.put(entry.getKey(), count+1);
+						}
+						}
+					
+
+				}
+				
+							
+				for (Map.Entry<String, Integer> entry : itemsMap.entrySet()) { 
+					context.write(new Text( entry.getKey()), new IntWritable(entry.getValue()));
+
+				}
+				
+			}
+
+
+	          
+
+
+	    }
+		
+	
+		public static class IntSumReducer2
+		extends Reducer<Text,IntWritable,Text,IntWritable> {
+			
+			double supportThrld;
+			private IntWritable result = new IntWritable();
+			
+			 @Override
+		    public void setup(Context context) throws IOException, InterruptedException {
+			        Configuration conf = context.getConfiguration();
+			        supportThrld = conf.getFloat("support", 0.01f);
+			        long totalLines = conf.getLong("TOTALNUM", 10000);
+			        if(totalLines == 0)
+			            throw new InterruptedException("Total number of baskets can not be zero!");
+
+			        supportThrld = (int) (supportThrld * totalLines);
+			        System.out.println("supportThrld is " + supportThrld);
+			    }
+
+			@Override
+			public void reduce(Text key, Iterable<IntWritable> values,
+	                       Context context
+	                       ) throws IOException, InterruptedException {
+	      int sum = 0;
+	      for (IntWritable val : values) {
+	        sum += val.get();
+	      }
+	      
+	     if (sum > supportThrld){ 
+	      result.set(sum);
+	      context.write(key, result);
+	      }
+	      //context.write(new Text(new Integer(sum).toString()), one);
+	      
+		}
+		}
 	
 	
 	public static void main(String[] args) throws Exception {
-		Configuration conf = new Configuration();
+	
+			Configuration conf = new Configuration();
 
-		GenericOptionsParser optionParser = new GenericOptionsParser(conf, args);
-		String[] remainingArgs = optionParser.getRemainingArgs();
-		if (!(remainingArgs.length != 2 || remainingArgs.length != 4)) {
-			System.err.println("Usage: wordcount <in> <out> [-skip skipPatternFile]");
-			System.exit(2);
-		}
-		Job job = Job.getInstance(conf, "AprioriAlgo");
-		job.setJarByClass(AprioriMR.class);
+			GenericOptionsParser optionParser = new GenericOptionsParser(conf, args);
+			String[] remainingArgs = optionParser.getRemainingArgs();
+			if (remainingArgs.length != 5 ) {
+				System.err.println("Usage: AprioriMR <in> <tmp> <out> <NumberofLinesPerRecord> <support(percentage)> ");
+				System.exit(2);
+			}
+			
+			Path inputpath = new Path(remainingArgs[0]);
+			Path tmppath = new Path(remainingArgs[1]);
+			Path outputpath = new Path(remainingArgs[2]);
+			int NofLines =  Integer.parseInt(remainingArgs[3]);
+			float support = Float.parseFloat(remainingArgs[4]);
+			
+			conf.set("temppath", remainingArgs[1]);
+			conf.setFloat("support", support);
+			conf.setInt("NofLines",NofLines);
+			Job job = Job.getInstance(conf, "AprioriMR");
+			job.setJarByClass(AprioriMR.class);
 
-		job.setMapperClass(TokenizerMapper1.class);
+			job.setMapperClass(TokenizerMapper1.class);
+			job.setReducerClass(IntSumReducer1.class);
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(IntWritable.class);
+			//List<String> otherArgs = new ArrayList<String>();
+			//myinput.N =  hunks;
+			job.setInputFormatClass(MyNLinesInputFormat.class);
+			
+			
+			FileInputFormat.addInputPath(job, inputpath);
+			FileOutputFormat.setOutputPath(job, tmppath);
+			job.waitForCompletion(true);
+			//int numberofchunks = 100;
+			long totalNum = job.getCounters().findCounter(Task.Counter.MAP_INPUT_RECORDS).getValue();
 
+            // create and execute job two
+            conf.setLong("TOTALNUM", totalNum*NofLines);
+            //conf.setLong("TOTALNUM", 100000);
 
-		job.setCombinerClass(IntSumReducer1.class);
-		job.setReducerClass(IntSumReducer1.class);
-		job.setOutputKeyClass(Text.class);
-		job.setOutputValueClass(IntWritable.class);
-
-		List<String> otherArgs = new ArrayList<String>();
-	    for (int i=0; i < remainingArgs.length; ++i) {
-	      if ("-skip".equals(remainingArgs[i])) {
-	        job.addCacheFile(new Path(remainingArgs[++i]).toUri());
-	        job.getConfiguration().setBoolean("wordcount.skip.patterns", true);
-	      } else {
-	        otherArgs.add(remainingArgs[i]);
-	      }
-	    }
-	//	job.setInputFormatClass(org.apache.hadoop.mapreduce.lib.input.NLineInputFormat.class);
-	//	job.getConfiguration().set("mapreduce.input.lineinputformat.linespermap", "3");
-		job.setInputFormatClass(MyNLinesInputFormat.class);
-	    FileInputFormat.addInputPath(job, new Path(otherArgs.get(0)));
-	    FileOutputFormat.setOutputPath(job, new Path(otherArgs.get(1)));
-
-		System.exit(job.waitForCompletion(true) ? 0 : 1);
+			
+			Path freqpath = new Path(remainingArgs[1]+"/"+"part-r-00000");
+			Job jobtwo = Job.getInstance(conf, "AprioriMRTwo");
+			jobtwo.setJarByClass(AprioriMR.class);
+			jobtwo.addCacheFile(freqpath.toUri());
+			jobtwo.setMapperClass(TokenizerMapper2.class);
+			jobtwo.setReducerClass(IntSumReducer2.class);
+			jobtwo.setOutputKeyClass(Text.class);
+			jobtwo.setOutputValueClass(IntWritable.class);
+			
+			jobtwo.setInputFormatClass(MyNLinesInputFormat.class);
+			FileInputFormat.addInputPath(jobtwo, inputpath);
+			FileOutputFormat.setOutputPath(jobtwo, outputpath);
+			jobtwo.waitForCompletion(true);
+			
+			
+			
+		
+	
+		
+		
 	}
 
 }	

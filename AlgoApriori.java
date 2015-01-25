@@ -1,3 +1,4 @@
+package project;
 /*package ca.pfv.spmf.algorithms.frequentpatterns.apriori;
 /* This file is copyright (c) 2008-2013 Philippe Fournier-Viger
 * 

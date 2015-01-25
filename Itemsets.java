@@ -1,3 +1,4 @@
+package project;
 //package ca.pfv.spmf.patterns.itemset_array_integers_with_count;
 
 /* This file is copyright (c) 2008-2012 Philippe Fournier-Viger
