@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<meta http-equiv="cache-control" content="no-cache" />
+		<meta name="viewport" content="minimum-scale=1.0, width=device-width, maximum-scale=1.6, user-scalable=no" />
+		<title>SFU Central Authentication Server</title>
+		<link href="/WebObjects/cas.woa/Contents/WebServerResources/css/main.css" rel="stylesheet" type="text/css" />
+		<link media="only screen and (max-device-width: 480px)" href="/WebObjects/cas.woa/Contents/WebServerResources/css/iphone.css" type= "text/css" rel="stylesheet" />
+		<script src="/WebObjects/cas.woa/Contents/WebServerResources/js/jquery-1.3.2.min.js" type="text/javascript"></script>
+		<script src="/WebObjects/cas.woa/Contents/WebServerResources/js/cas.js" type="text/javascript"></script>
+</head>
+<body onload="GiveFocus();">
+<script type="text/javascript" src="/WebObjects/cas.woa/Contents/WebServerResources/js/focus.js"></script>
+
+		<div id="centerPage">
+
+			<div id="header">
+				<a id="crestLink" href="http://www.sfu.ca/">Simon Fraser University</a>
+			</div>
+
+			<div id="iPhoneHeader">
+				<img src="/WebObjects/cas.woa/Contents/WebServerResources/images/sfu.png" alt="Simon Fraser University logo" />
+				<h1>Login Required</h1>
+			</div>
+
+			<div id="redBar"></div>
+
+			<div id="bodyContent">
+
+<div id="wrapper">
+	<div id="messageBox" class="msgBox yellow lock">
+		<span>
+			
+			
+				
+				
+					You have requested access to a site that requires authentication.
+				
+			
+		</span>
+	</div>
+	  
+
+	<div id="loginBox">
+		<div id="loginForm">
+			<form method="post" name="login" action="/cgi-bin/WebObjects/cas.woa/wa/login">
+				<fieldset>
+					<legend>Log in</legend>
+					<ol>
+						<li><label for="computingId">SFU Computing ID</label><input autocapitalize="off" autocorrect="off" onfocus="GaveFocus(this)" class="text" id="computingId" title="SFU Computing ID" type="text" name="username" /></li>
+						<li><label for="password">Password <span id="capsLock" style="color: #b5111a;visibility:hidden">(warning, CAPS LOCK appears to be on)</span></label><input autocapitalize="off" onkeypress="capLock(event)" autocorrect="off" autocomplete="off" onfocus="GaveFocus(this)" class="text" id="password" title="Password" type="password" name="password" /></li>
+						<li><label><input id="loginWarning" title="Login warning" type="checkbox" value="1" name="loginWarning" /> <span class="accesskey">W</span>arn me before logging me into other sites.</label></li>
+					</ol>
+					<input type="hidden" value="LT-823021-27HWJnwu5TNfWPD0hfF3BaoX5eAHSOudCYd-SunuL" name="lt" />
+					<input type="hidden" value="!cmpt-741,!cmpt-cas-operator,sfu" name="allow" /><input type="hidden" value="http://www.cs.sfu.ca/CourseCentral/741/wangk/P2014/Project-Assignment2014/example.dat" name="service" />
+					<script language="JavaScript" type="text/javascript"><!-- Dynamic client side script from WebObjects
+if (document.login.username.value.length==0){focusfield=document.login.username;}else{focusfield=document.login.password;}
+//-->
+</script>
+				</fieldset>
+
+				<fieldset>
+					<ol>
+						<li><input type="submit" value="Login" class="button"/><span id="forgotIdPassword">I've forgotten my <a href="https://my.sfu.ca/ForgotUsername">SFU Computing ID</a> or <a href="https://my.sfu.ca/ForgotPassword">password</a>.</span></li>
+					</ol>
+				</fieldset>
+			</form>
+		</div>
+	</div>
+	<div id="bottomContainer">
+	<div id="warningBox">
+		<h1>Protect your password!</h1>
+		<p>SFU will never request our users provide or confirm their Computing ID or password via email or by going to any web site. SFU users should ignore all messages requesting Computing ID and/or password information, no matter how authentic they may appear. <a href="http://www.sfu.ca/itservices/email/phishing" target="_blank">More information on phishing</a>.</p><p>Always check that your browser shows a closed lock icon and that the URL of this page starts with <strong>https://cas.sfu.ca</strong> or <strong>https://my.sfu.ca</strong> and not some other address.</p><p>If you're not sure, <span class="redstrong">do not enter your password.</span></p>
+	</div>
+	<div id="helpBox">
+		<h1>Manage your SFU Computing ID</h1>
+		<ul>
+			<li class="last"><a href="https://my.sfu.ca/ChangePassword" target="_blank">Change your password</a></li>
+		</ul>
+		<h1>Need help?</h1>
+		<ul>
+			<li><a href="http://students.sfu.ca/help/sishelp/applicants.html" target="_blank">Help with temporary ID</a> (for applicants only)</li>
+			<li><a href="https://my.sfu.ca/AccountActivation" target="_blank">Activate your SFU Computing ID</a></li>
+			<li><a href="http://my.sfu.ca/cgi-bin/WebObjects/OnLineHelp?url=file:///usr/localzone/home/ray/help/Central+Authentication+Server+Help" target="_blank">Read the Central Authentication Service FAQ</a></li>
+			<li class="last">Email <a href="mailto:help@sfu.ca">help@sfu.ca</a> or call 778-782-3230</li>
+		</ul>
+	</div>
+
+</div>
+</div>
+		</div>
+
+		<div id="footer">
+			8888 University Drive, Burnaby, B.C. Canada V5A 1S6 |
+			<a href="http://www.sfu.ca/webmaster/terms.html">Terms and Conditions</a> |
+			<a href="contact.html">Contact Us</a> |
+			<a href="http://www.sfu.ca/about/sitemap.html">SiteMap</a> |
+			<a href="http://www.sfu.ca/security/sfuroadconditions/">Road Conditions</a> |
+			&copy; Simon Fraser University
+			<br />Powered by <a href="http://www.ja-sig.org/cas/">JA-SIG CAS 3.3.2</a>
+		</div>
+
+	</div>
+
+</body>
+</html>
